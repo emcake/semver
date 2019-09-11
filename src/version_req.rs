@@ -331,6 +331,39 @@ impl VersionReq {
                 .iter()
                 .any(|p| p.pre_tag_is_compatible(version))
     }
+
+    /// `intersect()` returns a new `VersionReq` that is the intersection of this and other.
+    /// Note that it is possible to construct intersections with no possible matching versions.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use semver::VersionReq;
+    /// use semver::Version;
+    /// 
+    /// let req_a = VersionReq::parse(">=1.0").unwrap();
+    /// let req_b = VersionReq::parse("< 2.0").unwrap();
+    /// 
+    /// let v1_1 = Version { major: 1, minor: 1, patch : 0, pre: vec![], build: vec![] };
+    /// let v2_1 = Version { major: 2, minor: 1, patch : 0, pre: vec![], build: vec![] };
+    /// 
+    /// let intersection = req_a.intersect(&req_b);
+    ///
+    /// assert!(req_a.matches(&v1_1));
+    /// assert!(req_a.matches(&v2_1));
+    /// 
+    /// assert!(req_b.matches(&v1_1));
+    /// assert!(!req_b.matches(&v2_1));
+    /// 
+    /// assert!(intersection.matches(&v1_1));
+    /// assert!(!intersection.matches(&v2_1));
+    /// ```
+    pub fn intersect(&self, other: &VersionReq) -> VersionReq {
+        let mut preds = self.predicates.clone();
+        preds.append(&mut other.predicates.clone());
+
+        VersionReq { predicates : preds }
+    }
 }
 
 impl str::FromStr for VersionReq {
